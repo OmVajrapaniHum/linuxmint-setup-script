@@ -6,13 +6,13 @@ jakob.janzen80@gmail.com
 
 Linux Mint setup script.
 """
-import os
-import sys
 import argparse
-import subprocess
-import urllib.request
-import shutil
+import os
 import re
+import shutil
+import subprocess
+import sys
+import urllib.request
 
 
 class Logger:
@@ -129,6 +129,15 @@ class Setup(object):
         self.logger.step("Running Nala upgrade")
         subprocess.run(["nala", "upgrade", "-y"])
         self.logger.success("All system packages are current")
+
+    def flatpak(self):
+        self.logger.subsection("Flatpak Update")
+        self.logger.step("Flatpak: checking configured remotes")
+        self.run_as_user(["flatpak", "remotes"])
+        self.logger.step("Flatpak: listing installed")
+        self.run_as_user(["flatpak", "list"])
+        self.logger.step("Flatpak: checking for updates and runtimes")
+        self.run_as_user(["flatpak", "update", "-y"])
 
     def remove(self, categories=None):
         if categories:
@@ -298,6 +307,7 @@ def main():
     if args.update:
         logger.section("UPDATE")
         setup.upgrade()
+        setup.flatpak()
 
         logger.success("System is up to date")
 
@@ -575,14 +585,6 @@ def main():
         setup.install(categories)
 
         logger.section("FLATPAK MANAGEMENT")
-        logger.step("Checking configured remotes")
-        setup.run_as_user(["flatpak", "remotes"])
-        logger.step("Listing installed flatpaks")
-        setup.run_as_user(["flatpak", "list"])
-
-        logger.subsection("Flatpak Update")
-        logger.step("Checking for flatpak updates and runtimes")
-        setup.run_as_user(["flatpak", "update", "-y"])
 
         logger.success("All required packages (APT & Flatpak) have been processed")
 
