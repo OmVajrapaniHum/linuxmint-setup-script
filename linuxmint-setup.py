@@ -223,8 +223,8 @@ class Setup(object):
             "kernel.printk = 3 4 1 3\n"
             "kernel.sysrq = 0\n"
             "\n"
-            "vm.dirty_background_ratio = 2\n"
-            "vm.dirty_ratio = 60\n"
+            "vm.dirty_background_ratio = 5\n"
+            "vm.dirty_ratio = 10\n"
             "vm.swappiness = 10\n"
         )
         try:
