@@ -220,12 +220,18 @@ class Setup(object):
         target_file = "/etc/sysctl.d/99-zzz-sysctl.conf"
         sysctl_content = (
             "# Optimized sysctl settings for TUXEDO Laptop\n"
+            "\n"
+            "net.ipv4.tcp_fastopen = 3\n"
+            "net.core.netdev_max_backlog = 5000\n"
+            "\n"
             "kernel.printk = 3 4 1 3\n"
             "kernel.sysrq = 0\n"
             "\n"
             "vm.dirty_background_ratio = 5\n"
             "vm.dirty_ratio = 10\n"
+            "vm.nr_hugepages = 0\n"
             "vm.swappiness = 10\n"
+            "vm.vfs_cache_pressure = 50\n"
         )
         try:
             self.logger.step(f"Writing optimizations to {target_file}")
@@ -445,6 +451,7 @@ def main():
                 # 3. Media
                 "cheese",  # Webcam tester
                 "transmission-gtk",  # Lightweight Torrent client
+                "sqlite3",  # Command line interface for SQLite 3
             ],
             "OFFICE": [
                 # 1. LibreOffice
