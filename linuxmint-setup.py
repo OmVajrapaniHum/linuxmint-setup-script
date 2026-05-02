@@ -116,9 +116,9 @@ class Setup(object):
     def update(self):
         self.logger.subsection("System Refresh")
         self.logger.step("Updating APT cache")
-        subprocess.run(["apt", "update", "-y"])
+        subprocess.run(["apt", "update"])
         self.logger.step("Ensuring Nala is installed")
-        subprocess.run(["apt", "install", "-y", "nala"])
+        subprocess.run(["apt", "install", "nala"])
         self.logger.step("Syncing Nala with repositories")
         subprocess.run(["nala", "update"])
         self.logger.success("System repositories are up to date")
@@ -127,7 +127,7 @@ class Setup(object):
         self.update()
         self.logger.subsection("Full System Upgrade")
         self.logger.step("Running Nala upgrade")
-        subprocess.run(["nala", "upgrade", "-y"])
+        subprocess.run(["nala", "upgrade"])
         self.logger.success("All system packages are current")
 
     def flatpak(self):
@@ -137,14 +137,14 @@ class Setup(object):
         self.logger.step("Flatpak: listing installed")
         self.run_as_user(["flatpak", "list"])
         self.logger.step("Flatpak: checking for updates and runtimes")
-        self.run_as_user(["flatpak", "update", "-y"])
+        self.run_as_user(["flatpak", "update"])
 
     def remove(self, categories=None):
         if categories:
             for key, packages in categories.items():
                 self.logger.subsection(f"Removing Category: {key}")
                 self.logger.step(f"Purging {len(packages)} packages")
-                subprocess.run(["nala", "purge", "-y"] + packages)
+                subprocess.run(["nala", "purge"] + packages)
                 self.logger.success(f"Removed all packages in {key}")
 
     def install(self, categories=None):
@@ -152,7 +152,7 @@ class Setup(object):
             for key, packages in categories.items():
                 self.logger.subsection(f"Installing Category: {key}")
                 self.logger.step(f"Installing {len(packages)} packages from {key}")
-                subprocess.run(["nala", "install", "-y"] + packages)
+                subprocess.run(["nala", "install"] + packages)
                 self.logger.success(f"Category {key} installed successfully")
 
     def clean(self):
@@ -227,8 +227,8 @@ class Setup(object):
             "kernel.printk = 3 4 1 3\n"
             "kernel.sysrq = 0\n"
             "\n"
-            "vm.dirty_background_ratio = 5\n"
-            "vm.dirty_ratio = 10\n"
+            "vm.dirty_background_ratio = 10\n"
+            "vm.dirty_ratio = 40\n"
             "vm.nr_hugepages = 0\n"
             "vm.swappiness = 10\n"
             "vm.vfs_cache_pressure = 50\n"
@@ -328,6 +328,33 @@ def main():
             "UNWANTED": [
                 "gcolor3",
                 "thunderbird*",
+                "thermald",
+                "preload",
+                "haveged",
+                "unattended-upgrades",
+                "smartmontools",
+                "htop",
+                "nmon",
+                "iotop",
+                "dconf-editor",  # Graphical settings editor
+                "tree",  # Directory tree visualizer
+                "synaptic",  # GUI management tool
+                "needrestart",  # Service restart prompter
+                "ppa-purge",  # Safely remove unstable repositories
+                "software-properties-common",
+                "aspell",  # Classic CLI engine
+                "aspell-de",  # CLI German dict
+                "aspell-en",  # CLI English dict
+                "myspell-dictionary-de",  # Legacy German support
+                "libreoffice",  # Full office suite
+                "libreoffice-base",
+                "libreoffice-base-core",
+                "libreoffice-base-drivers",
+                "vlc-plugin-fluidsynth",  # MIDI synth support
+                "vlc-plugin-jack",  # JACK audio support
+                "vlc-plugin-svg",  # SVG icon support
+                "vlc-plugin-visualization",  # Audio visualizers
+                "python3-autopep8",  # PEP 8 style guide formatter
             ],
         }
         setup.remove(categories)
@@ -339,189 +366,132 @@ def main():
         setup.update()
 
         categories = {
-            "APT": [
-                # 1. Base
+            "REPOSITORY": [
                 "ubuntu-standard",  # Core system utilities
-                "apt-transport-https",  # HTTPS repo support
-                # 2. Management
-                "aptitude",  # Advanced terminal interface
-                "synaptic",  # Graphical package manager
-                # 3. Automation
-                "unattended-upgrades",  # Security auto-patching
-                # 4. Experience
                 "ubuntu-restricted-extras",  # Media codecs and MS fonts
             ],
             "PACKAGE_TOOLS": [
-                # 1. Infrastructure
-                "apt-transport-https",  # Protocol support
-                "bash-completion",  # Terminal tab-completion
-                "ca-certificates",  # SSL/TLS validation
-                "software-properties-common",  # Repository management
-                # 2. Frontends
-                "nala",  # Modern terminal frontend
-                "synaptic",  # GUI management tool
-                "apt-file",  # Package file search
-                # 3. Python
-                "python3-apt",  # Python APT bindings
-                # 4. Maintenance
-                "needrestart",  # Service restart prompter
-                "ppa-purge",  # PPA rollback utility
-                "deborphan",  # Orphaned library finder
+                "nala",  # Efficient terminal interface
+                "aptitude",
+                "deborphan",  # Find unused libraries
+                "apt-transport-https",  # Support for secure repos
+                "apt-file",  # Track package ownership
             ],
             "REQUIRED": [
-                # 1. Hardware
-                "thermald",  # Intel thermal management
-                "smartmontools",  # SSD health monitoring
-                # 2. Optimization
-                "haveged",  # Entropy daemon (Speed)
-                "preload",  # Application readahead
-                # 3. CLI Tools
                 "tmux",  # Terminal multiplexer
-                "neovim",  # Terminal text editor
+                "neovim",  # Editor
             ],
             "UTILITY": [
-                # 1. Navigation
-                "mc",  # Dual-pane file manager
-                "tree",  # Directory tree visualizer
-                "fzf",  # Fuzzy finder (Command-line)
-                "eza",  # Enhanced 'ls' with colors
-                "zoxide",  # Fast directory jumper ('z')
-                # 2. Disk Analysis
-                "duf",  # User-friendly 'df' (Disk info)
-                "ncdu",  # Interactive disk usage analyzer
-                "gdisk",  # GPT partition table manipulator
-                # 3. Text & Data
-                "bat",  # Syntax-highlighting 'cat'
-                "ripgrep",  # Blazing fast 'grep' ('rg')
-                "jq",  # Command-line JSON processor
-                # 4. Configuration
-                "dconf-cli",  # Backend settings access
-                "dconf-editor",  # Graphical settings editor
+                "bash-completion",  # Productivity
+                "fzf",
+                "zoxide",
+                "eza",  # Navigation
+                "mc",
+                "ripgrep",
+                "bat",
+                "jq",  # Processing
+                "duf",
+                "ncdu",
+                "gdisk",  # Disk Management
+                "dconf-cli",  # Settings
+                "cpufrequtils",  # Thermal Control
             ],
             "ANALYZE": [
-                # 1. Monitoring
-                "btop",  # Modern dashboard monitor
-                "htop",  # Interactive process viewer
-                "nmon",  # Comprehensive system stats
-                # 2. Specialized
-                "iotop",  # Disk I/O monitor by process
-                # 3. Hardware
-                "hwinfo",  # Hardware probing tool
-                "inxi",  # Full hardware/driver summary
+                "btop",  # Resource monitoring
+                "powertop",  # Power/Thermal tuning
+                "fatrace",  # Disk wake-up hunting
+                "inxi",  # Hardware auditing
+                "hwinfo",  # Hardware auditing
+                # --- TUXEDO Specific (Commented for now) ---
+                # "intel-gpu-tools",
+                # "intel_gpu_top",
             ],
             "NETWORK": [
-                # 1. Base
                 "ca-certificates",  # SSL/TLS validation (Critical)
-                "net-tools",  # Classic 'ifconfig' utilities
-                # 2. Transfer & Speed
-                "curl",  # Versatile data transfer tool
-                "wget",  # Standard file downloader
-                "speedtest-cli",  # Terminal speed test
-                # 3. Remote Access
-                "openssh-client",  # SSH client binary
-                "openssh-server",  # SSH daemon for remote login
-                "openssh-sftp-server",  # Secure file transfer engine
-                "sshfs",  # Filesystem client based on SSH File Transfer Protocol
+                "net-tools",  # Classic tools (Manual use only)
+                "curl",  # Manual use
+                "wget",  # Manual use
+                "speedtest-cli",
+                "openssh-client",  # Needed to connect OUT
+                "openssh-server",  # Now MASKED (Zero process impact)
+                "openssh-sftp-server",  # Now MASKED
+                "sshfs",  # High utility, zero idle cost
             ],
             "SPELLING": [
-                # 1. Frameworks
                 "libenchant-2-2",  # App-to-dictionary bridge
                 "hunspell",  # Modern standard engine
-                "aspell",  # Classic CLI engine
-                # 2. German (DE)
                 "hunspell-de-de-frami",  # Primary German dict
-                "aspell-de",  # CLI German dict
-                "myspell-dictionary-de",  # Legacy German support
                 "mythes-de",  # German Thesaurus
                 "hyphen-de",  # German Hyphenation
-                # 3. English (EN)
                 "hunspell-en-us",  # Primary English dict
-                "aspell-en",  # CLI English dict
                 "mythes-en-us",  # English Thesaurus
                 "hyphen-en-us",  # English Hyphenation
             ],
             "ACCESSORY": [
-                # 1. Themes (Qt/GTK Sync)
                 "adwaita-qt",  # Qt5 theme matching
                 "adwaita-qt6",  # Qt6 theme matching
                 "qt5ct",  # Qt5 config utility
                 "qt6ct",  # Qt6 config utility
-                # 2. Productivity
                 "meld",  # Visual diff/merge tool
-                # 3. Media
                 "cheese",  # Webcam tester
                 "transmission-gtk",  # Lightweight Torrent client
                 "sqlite3",  # Command line interface for SQLite 3
             ],
             "OFFICE": [
-                # 1. LibreOffice
-                "libreoffice",  # Full office suite
+                "libreoffice-writer",  # (Word processing)
+                "libreoffice-calc",  # (Spreadsheets)
+                "libreoffice-impress",  # (Presentations)
+                "libreoffice-math",  # (Formula editor)
+                "libreoffice-draw",  # (Graphics/PDF editing)
                 "libreoffice-gtk3",  # XFCE UI integration
                 "libreoffice-style-sifr",  # Flat icon theme
                 "libreoffice-l10n-de",  # German UI translation
-                # 2. Publishing
                 "pandoc",  # Document converter
                 "texlive-full",  # Comprehensive LaTeX (~5GB)
             ],
             "GRAPHIC": [
-                # 1. Raster (GIMP)
                 "gimp",  # GNU Image Manipulation Program
                 "gimp-data-extras",  # Brushes and patterns
                 "gimp-plugin-registry",  # Essential plugin bundle
                 "gimp-help-de",  # German GIMP manuals
-                # 2. Vector (Inkscape)
                 "inkscape",  # Vector graphics editor
-                # 3. Hardware
                 "libwacom-common",  # Wacom/Tablet support
             ],
             "MULTIMEDIA": [
-                # 1. Playback
                 "mpv",  # Fast, GPU-accelerated player
                 "yt-dlp",  # YouTube/Video downloader
-                # 2. VLC Suite
                 "vlc",  # Universal media player
                 "vlc-l10n",  # German UI for VLC
                 "vlc-plugin-pipewire",  # Native PipeWire audio
-                "vlc-plugin-jack",  # JACK audio support
-                "vlc-plugin-fluidsynth",  # MIDI synth support
-                "vlc-plugin-svg",  # SVG icon support
-                "vlc-plugin-visualization",  # Audio visualizers
-                # 3. Audio Tools
                 "audacity",  # Waveform audio editor
                 "pavucontrol",  # PipeWire/Pulse Mixer
             ],
             "CODEC": [
-                # 1. Frameworks
                 "ffmpeg",  # The Swiss-army knife for media
                 "libavif-bin",  # AVIF image support
                 "libwebm-tools",  # WebM processing
                 "libwebm1",  # WebM runtime library
-                # 2. Video
                 "dav1d",  # Ultra-fast AV1 decoder
                 "davs2",  # AVS2 support
                 "rav1e",  # Rust-based AV1 encoder
                 "svt-av1",  # Intel-optimized AV1 (Best for you)
                 "x264",  # H.264/AVC standard
                 "x265",  # H.265/HEVC standard
-                # 3. Audio
                 "aften",  # AC3 toolset
                 "faac",  # AAC encoder
                 "fdkaac",  # FDK-AAC CLI
                 "libfdk-aac2",  # FDK-AAC library
                 "lame",  # MP3 encoder
                 "speex",  # Speech-specific codec
-                # 4. Utilities
                 "mkvtoolnix",  # MKV editor (mkvmerge)
                 "ogmtools",  # OGG/OGM stream tools
             ],
             "COMPRESSION": [
-                # 1. Standards
                 "tar",  # Standard Unix archiver
                 "gzip",  # Standard compression
                 "bzip2",  # High compression legacy
                 "zip",  # Universal Windows compatibility
                 "unzip",  # Standard extractor
-                # 2. Parallel (Multi-threaded)
                 "pigz",  # Multi-core GZIP (Fast!)
                 "pbzip2",  # Multi-core BZIP2
                 "lbzip2",  # Fast multi-core BZIP2
@@ -529,14 +499,12 @@ def main():
                 "zstd",  # Modern Facebook-speed standard
                 "lz4",  # Fastest real-time compression
                 "lrzip",  # For very large archives
-                # 3. Specialized
                 "7zip",  # 7-Zip (Modern p7zip)
                 "zpaq",  # Maximum data density
                 "lzip",  # Error-resilient LZMA
                 "plzip",  # Multi-core LZIP
                 "tarlz",  # Tar with LZIP support
                 "lzop",  # Low-CPU overhead LZO
-                # 4. Legacy & Windows
                 "unar",  # Universal extractor (Best for XFCE)
                 "unrar",  # RAR extraction support
                 "rar",  # RAR creation support
@@ -581,7 +549,10 @@ def main():
             ],
             "DEVELOPMENT_DOCS": [
                 "bash-doc",  # Local documentation for Bash
+                "glibc-doc",
                 "linux-doc",  # Deep Linux kernel manuals
+                "manpages-dev",
+                "manpages-posix-dev",
                 "python3-doc",  # Local Python 3 reference
                 "zeal",  # Offline API documentation browser
             ],
