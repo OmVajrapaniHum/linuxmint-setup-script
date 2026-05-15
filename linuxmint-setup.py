@@ -538,7 +538,6 @@ def main():
                 "pipenv",  # Deterministic dependency management
                 "python3-poetry",  # Modern project/package manager
                 "black",  # Uncompromising code formatter
-                "python3-autopep8",  # PEP 8 style guide formatter
                 "python3-flake8",  # Code linter for syntax/style
                 "python3-pytest",  # Advanced testing framework
             ],
@@ -594,8 +593,6 @@ def main():
         services = [
             "systemd-sysctl",
             "systemd-journald",
-            "preload",
-            "haveged",
             "ssh",
         ]
         for service in services:
